@@ -9,15 +9,20 @@
 #include <condition_variable>
 #include <atomic>
 #include <functional>
+#include <iostream>
+#include <format>
 
 #include "defines.hpp"
 
 class Thread{
 public:
-    Thread(std::function<void()> func);
+    using ThreadFuncType = std::function<void()>;
+    Thread(ThreadFuncType func);
+    ~Thread();
     void start();
 private:
-    std::function<void()> m_func;
+    ThreadFuncType m_func;
+    std::unique_ptr<std::thread> m_threadPtr;
 };
 
 class Task{
@@ -41,9 +46,9 @@ public:
 
     template<typename ...Args>
     static std::shared_ptr<ThreadPool> getThreadPool(Args&&... args){
-        if(m_ptr == nullptr){
-            m_ptr = std::make_shared<ThreadPool>(std::forward<Args>(args)...);
-        }
+        std::call_once(initFlag, [&args...]{
+            m_ptr.reset(new ThreadPool(std::forward<Args>(args)...));
+        });
         return m_ptr;
     }
 
@@ -65,7 +70,7 @@ private:
 private:
     ThreadPool();
 
-    std::vector<std::shared_ptr<Thread>> m_threads;         // 线程队列
+    std::vector<std::unique_ptr<Thread>> m_threads;         // 线程队列
     size_t m_initialNumThreads;                             // 初始线程个数
     size_t m_maxNumThreads;                                 // 最大线程个数
 
@@ -73,13 +78,15 @@ private:
     size_t m_maxTaskQueueSize;                              // 最大任务数量
     std::atomic_uint64_t m_taskQueueSize;                   // 任务数量
 
-    std::mutex mtx;                                         // 对任务队列的互斥锁
+    std::mutex m_mtx;                                         // 对任务队列的互斥锁
     std::condition_variable m_notFull;                      // 分别对生产者和消费者的条件变量
     std::condition_variable m_notEmpty;                     
+    std::atomic_bool m_isRunning;                             // 线程池是否正在运行
 
     ThreadPoolMode m_mode;                                  // 线程池模式
 
     static std::shared_ptr<ThreadPool> m_ptr;                      // 单例指针
+    static std::once_flag initFlag;
 };
 
 #endif
