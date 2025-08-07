@@ -5,6 +5,7 @@
 2. Thread类：线程封装类
 3. PoolMode：线程池模式枚举
 4. Task类：任务抽象基类，用户任务继承这个类，可以自定义任务处理，含有run()抽象方法
+5. Result类：接受异步执行的结果，会抛出ResultErrorInfo中的异常和传入函数抛出的异常
 
 ##### <b>怎么使用</b>
 1. 使用`ThreadPool::getThreadPool`获得单例线程池，返回值`std::shared_ptr<ThreadPool>`
