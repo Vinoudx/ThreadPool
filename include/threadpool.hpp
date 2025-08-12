@@ -145,20 +145,17 @@ public:
 
     template<typename T>
     Result<T> submit(Task<T>&& task){
-        std::cout<< "task submited\n";
         Result<T> res(std::move(task.getFuture()));
         std::shared_ptr<TaskBase> sp = std::make_shared<Task<T>>(std::move(task));
 
         // 线程池关闭时不允许提交任务
         if (!m_isRunning){
-            std::cout<< "pool closed\n";
             res.isValid = false;
             res.info = ResultErrorInfo::ThreadPool_Closed;
             return res;
         }
 
         if (m_taskQueueSize == m_maxTaskQueueSize){
-            std::cout<< "task full\n";
             res.isValid = false;
             res.info = ResultErrorInfo::ThreadPool_TaskQueueFull;
             return res;
@@ -171,7 +168,6 @@ public:
         });
         // 超时处理
         if(!isTimeOut){
-            std::cout<< "submit timeout\n";
             res.isValid = false;
             res.info = ResultErrorInfo::ThreadPool_TimeOut;
             return res;
@@ -181,13 +177,11 @@ public:
         m_taskQueueSize++;
         m_notEmpty.notify_all();
 
-        std::cout<< m_numIdleThread << m_taskQueueSize << m_numThreads << m_maxNumThreads <<std::endl;
 
         // 进行cached模式逻辑
         if(m_mode == ThreadPoolMode::MODE_CACHED 
             && m_numIdleThread < m_taskQueueSize 
             && m_numThreads < m_maxNumThreads){
-            std::cout<< "add more threads\n";
             size_t id = createThread();
             m_threads[id]->start();
         }

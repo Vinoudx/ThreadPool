@@ -1,7 +1,7 @@
 #include "threadpool.hpp"
 #include <iostream>
 
-unsigned long long func(int j){
+unsigned long long func(const int& j){
     unsigned long long res = 0;
     for(unsigned long long i=0; i<j;i++){
         res += i;

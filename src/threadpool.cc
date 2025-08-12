@@ -98,7 +98,6 @@ size_t ThreadPool::createThread(){
 
 
 void ThreadPool::threadHandler(const std::stop_token& token, size_t thisThreadId){
-    std::cout<< "thread begin "<< thisThreadId<< '\n';
     while(true){
         std::unique_lock<std::mutex> l(m_mtx);
 
@@ -110,7 +109,6 @@ void ThreadPool::threadHandler(const std::stop_token& token, size_t thisThreadId
             // 线程超时
             if(!isexpired){
                 if(m_numThreads > m_initialNumThreads){
-                    std::cout<< "thread expired "<< thisThreadId << '\n';
                     // 回收线程
                     m_numThreads--;
                     m_numIdleThread--;
@@ -135,7 +133,6 @@ void ThreadPool::threadHandler(const std::stop_token& token, size_t thisThreadId
         if(!m_taskQueue.empty()){
             m_notEmpty.notify_all();
         }
-        std::cout<< "get task "<< thisThreadId << '\n';
         auto task = m_taskQueue.front();
         m_taskQueue.pop();
         m_taskQueueSize--;
@@ -146,7 +143,6 @@ void ThreadPool::threadHandler(const std::stop_token& token, size_t thisThreadId
 
         m_numIdleThread++;
     }
-    std::cout<< "thread end "<< thisThreadId << '\n';
 }
 
 //////////////////////////////////////
